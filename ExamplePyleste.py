@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
   inputs = ["u","d","l","r"]
   inputs2 = ["u","d","l","r","N","N","N","N"]
-  populationSize = 100
+  populationSize = 1000
   mutationRate = 0.05
   population = []
   sequenceLength = 200
@@ -68,11 +68,11 @@ if __name__ == '__main__':
           p8.set_inputs(r=True)
         if dir2 == "u":
           p8.set_inputs(u=True)
-        elif dir1 == "d":
+        elif dir2 == "d":
           p8.set_inputs(d=True)
-        elif dir1 == "l":
+        elif dir2 == "l":
           p8.set_inputs(l=True)
-        elif dir1 == "r":
+        elif dir2 == "r":
           p8.set_inputs(r=True)
         if jump:
           p8.set_inputs(z=True)

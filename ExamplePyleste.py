@@ -28,7 +28,7 @@ print(p8.game)
 inputs = ["u","d","l","r"]
 inputs2 = ["u","d","l","r","N","N","N","N"]
 populationSize = 1000
-mutationRate = 0.05
+mutationRate = 0.02
 population = []
 sequenceLength = 200
 class Input:
@@ -70,7 +70,7 @@ for i in range(10):
   for p in population:
     lowestY = 10000
     for move in p:
-      configMove()
+      configMove(move)
       # not exactly sure what this does
       p8.step()
       if p8.game.get_player() != None:
@@ -105,10 +105,7 @@ lowestY = 100
 # I can't really tell what this code is trying to do though.
 # also the variable 'p' doesn't seem to exist.
 for move in population[0]:
-  p8.set_inputs(r=True, x=True)
-  for move in p:
-    configMove(move)
-
-      p8.step() # not sure if these two lines are indented correctly
-      print(p8.game.get_player())
-      
+  configMove(move)
+  p8.step() # not sure if these two lines are indented correctly
+  print(p8.game.get_player())
+    

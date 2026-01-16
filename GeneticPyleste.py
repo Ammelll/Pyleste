@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 if __name__ != '__main__': sys.exit()
 # import PICO-8 emulator and Celeste
@@ -19,8 +21,8 @@ w w w v v v v . . . . . w . < w
 w w > . . . . . . . . w w . . .
 w > . . . . . . . . . w . . . .
 . . . . . . . . . . . w . . . .
-. . . . . . . . w w w w . . . .
-. . . . . . . . w . . . . . . .
+. . . . . . . . . . w w . . . .
+. . . . . . . . w w w . . . . .
 . . . . . . . . w . . . . . . .
 . . . . . . w w w . . . . . . .
 . . . . . . w . . . . . . . . .
@@ -30,7 +32,7 @@ w > . . . . . . . . . w . . . .
 . . . p w . . . . . . . . . . .
 w w w w w w w w w w w w w w w w
 # '''
-# utils.replace_room(p8, 0, room_data)
+utils.replace_room(p8, 0, room_data)
 utils.load_room(p8, 0)
 # skip the player spawn
 utils.skip_player_spawn(p8)
@@ -49,55 +51,72 @@ populationSize = 100
 mutationRate = 0.05
 population = []
 sequenceLength = 200
-class Input:
-  def __init__(self, dir1,dir2,jump,dash):
-    self.dir1 = dir1
-    self.dir2 = dir2
-    self.jump = jump
-    self.dash = dash
-
+def get_digit(number, n):
+    return number // 10**n % 10
 def randomSequence():
-  sequence = []
+  sequence = ""
   for i in range(sequenceLength):
-    sequence.append(Input(random.choice(inputs),random.choice(inputs2), random.random() < 0.15,random.random() < 0.15))
+    dir1 = random.choice(inputs)
+    dir2 = random.choice(inputs2)
+    jump = random.random() < 0.15
+    dash = random.random() < 0.15
+    num1=0
+    num2=0
+    num3=0
+    num4=0
+    if dir1 == "l":
+      num1=1
+    if dir2 == "u":
+      num2=1
+    elif dir2 == "d":
+      num2=2
+    if jump:
+      num3=1
+    if dash:
+      num4=1
+    sequence+=str(num1*1000+num2*100+num3*10+num4)
   return sequence
 def initialSeeding():
   for i in range(populationSize):
     population.append(randomSequence())
 def configMove(move):
-  match move.dir1:
-    case "u": p8.set_inputs(u=True)
-    case "d": p8.set_inputs(d=True)
-    case "l": p8.set_inputs(l=True)
-    case "r": p8.set_inputs(r=True)
-  match move.dir2:
-    case "u": p8.set_inputs(u=True)
-    case "d": p8.set_inputs(d=True)
-    case "l": p8.set_inputs(l=True)
-    case "r": p8.set_inputs(r=True)
-  if move.jump:
+  p8.set_inputs(l=False, r=False, u=False, d=False, z=False, x=False)
+  move = int(move)
+  if get_digit(move,3)==1:
+    p8.set_inputs(l=True)
+  else:
+    p8.set_inputs(r=True)
+  if get_digit(move,2)==1:
+    p8.set_inputs(u=True)
+  elif get_digit(move,2)==2:
+    p8.set_inputs(d=True)
+  if get_digit(move,1)==1:
     p8.set_inputs(z=True)
-  if move.dash:
+  if get_digit(move,0)==1:
     p8.set_inputs(x=True)
+
 
 initialSeeding()
 lowestY = 100
 
 while lowestY > 10:
-  print(lowestY)
   scores = []
   nextGen = []
   for p in population:
     utils.load_room(p8, 0)
     utils.skip_player_spawn(p8)
     lowestY = 10000
-    for move in p:
+    for i in range(0, len(p), 4):      
+      move = p[i:i + 4]
       configMove(move)
       # not exactly sure what this does
       p8.step()
       if p8.game.get_player() != None:
         lowestY = min(lowestY, p8.game.get_player().y)
+      else:
+        break
     scores.append(100-lowestY)
+    print(lowestY)
   indices = sorted(range(len(scores)), key=lambda i: scores[i])[-int(populationSize*1/10):]
   # I'd change this to index, but indice is too funny
   for indice in indices:
@@ -109,21 +128,34 @@ while lowestY > 10:
       r2 = random.randint(0,9)
     m1 = nextGen[r1]
     m2 = nextGen[r2]
-    child = []
-    for inp in range(len(m1)):
+    child = ""
+    for inp in range(0, len(m1), 4):     
       flip = bool(random.getrandbits(1)) 
       if random.random() < mutationRate:
-        child.append(Input(random.choice(inputs),random.choice(inputs2), random.random() < 0.15,random.random() < 0.15))
+        dir1 = random.choice(inputs)
+        dir2 = random.choice(inputs2)
+        jump = random.random() < 0.15
+        dash = random.random() < 0.15
+        num1=0
+        num2=0
+        num3=0
+        num4=0
+        if dir1 == "l":
+          num1=1
+        if dir2 == "u":
+          num2=1
+        elif dir2 == "d":
+          num2=2
+        if jump:
+          num3=1
+        if dash:
+          num4=1
+        child+=str(num1*1000+num2*100+num3*10+num4)
       elif flip:
-        child.append(m1[inp])
+        child+=m1[inp:inp + 4]
       else:
-        child.append(m2[inp])
+        child+=m2[inp:inp + 4]
     nextGen.append(child)
   population = nextGen
 print(p8.game)
 
-for move in population[0]:
-  configMove(move)
-  p8.step() # not sure if these two lines are indented correctly
-  print(p8.game.get_player())
-    
